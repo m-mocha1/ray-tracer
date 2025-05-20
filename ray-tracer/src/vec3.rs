@@ -19,7 +19,7 @@ impl Vec3 {
 impl ops::Add for Vec3 {
     type Output = Self;
 
-    fn add(self, rs: Vec3) -> Vec3 {
+    fn add(self, rs: Vec3) -> Self::Output {
         Vec3 {
             e: [
                 self.e[0] + rs.e[0],
@@ -27,5 +27,39 @@ impl ops::Add for Vec3 {
                 self.e[2] + rs.e[2],
             ],
         }
+    }
+}
+
+impl ops::Mul<f32> for Vec3 {
+    type Output = Self;
+
+    fn mul(self, rhs: f32) -> Self::Output {
+        Vec3 {
+            e: [self.e[0] * rhs, self.e[1] * rhs, self.e[2] * rhs],
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_vec3_add() {
+        assert_eq!(
+            Vec3::new(2.0, 4.0, 6.0) + Vec3::new(1.0, 1.0, 4.0),
+            Vec3::new(3.0, 5.0, 10.0)
+        );
+    }
+    #[test]
+    fn test_vec3_mul() {
+        assert_eq!(Vec3::new(2.0, 4.0, 6.0) * 2.0
+        , Vec3::new(4.0, 8.0, 12.0));
+    }
+    #[test]
+    fn test_vec3_div() {
+        assert_eq!(
+            Vec3::new(2.0, 4.0, 6.0) + Vec3::new(1.0, 1.0, 4.0),
+            Vec3::new(2.0, 4.0, 24.0)
+        );
     }
 }
