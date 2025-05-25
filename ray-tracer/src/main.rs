@@ -1,43 +1,46 @@
+mod hittable;
+mod hittable_list;
 mod ray;
+mod sphere;
 mod vec3;
-use std::mem::Discriminant;
 
+use hittable::{HitRecord, Hittable};
+use hittable_list::HittableList;
 use ray::Ray;
+use sphere::Sphere;
 use vec3::Vec3;
 
-fn color(r: &Ray) -> Vec3 {
-    if hit_sphere(&Vec3::new(0.0, 0.0, -1.0), 0.5, r) {
-        return Vec3::new(1.0, 0.0, 0.0);
+fn color(r: &Ray, list: &HittableList) -> Vec3 {
+    let mut rec = HitRecord::default();
+
+    if list.hit(r, 0.0, std::f32::MAX, &mut rec) {
+        0.5 * Vec3::new(
+            rec.normal.x() + 1.0,
+            rec.normal.y() + 1.0,
+            rec.normal.z() + 1.0,
+        )
+    } else {
+        let unit_dir = r.direction().unit_vector();
+        let t = 0.5 * (unit_dir.y() + 1.0);
+        Vec3::new(1.0, 1.0, 1.0) * (1.0 - t) + Vec3::new(0.5, 0.7, 1.0) * t
     }
-
-    let unit_dir = Vec3::unit_vector(&r.direction());
-    let t = 0.5 * (unit_dir.y() + 1.0);
-
-    Vec3::new(1.0, 1.0, 1.0) * (1.0 - t) + Vec3::new(0.5, 0.7, 0.1) * t
-}
-
-fn hit_sphere(center: &Vec3, radius: f32, r: &Ray) -> bool {
-    let oc = r.origin() - *center;
-    let a = Vec3::dot(&r.direction(), &r.direction());
-    let b = 2.0 * Vec3::dot(&oc, &r.direction());
-    let c = Vec3::dot(&oc, &oc) - radius * radius;
-
-    let discriminant = b * b - 4.0 * a * c;
-
-    discriminant > 0.0
 }
 
 fn main() {
-    // let w = 800;
-    // let h = 600;
-    let w = 200;
-    let h = 100;
+    let w = 800;
+    let h = 600;
+    // let w = 200;
+    // let h = 100;
     let max_value = 255;
 
     let lower_left_corner = Vec3::new(-2.0, -1.0, -1.0);
     let horizontal = Vec3::new(4.0, 0.0, 0.0);
     let vertical = Vec3::new(0.0, 2.0, 0.0);
     let origin = Vec3::new(0.0, 0.0, 0.0);
+
+    let mut list = HittableList::new();
+    list.add(Box::new(Sphere::new(Vec3::new(0.0, -100.5, -1.0), 100.0)));
+    list.add(Box::new(Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.5)));
 
     println!("P3\n{} {}\n{}", w, h, max_value);
 
@@ -48,7 +51,7 @@ fn main() {
 
             let direction = lower_left_corner + horizontal * u + vertical * v;
             let r = Ray::ray(origin, direction);
-            let color = color(&r);
+            let color = color(&r, &list);
 
             let ir = (255.99 * color.r()) as i32;
             let ig = (255.99 * color.g()) as i32;
