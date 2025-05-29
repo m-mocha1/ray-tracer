@@ -1,15 +1,17 @@
+mod camera;
 mod hittable;
 mod hittable_list;
 mod ray;
 mod sphere;
 mod vec3;
 
+use camera::Camera;
 use hittable::{HitRecord, Hittable};
 use hittable_list::HittableList;
+use rand::prelude::*;
 use ray::Ray;
 use sphere::Sphere;
 use vec3::Vec3;
-
 fn color(r: &Ray, list: &HittableList) -> Vec3 {
     let mut rec = HitRecord::default();
 
@@ -27,35 +29,39 @@ fn color(r: &Ray, list: &HittableList) -> Vec3 {
 }
 
 fn main() {
-    let w = 800;
-    let h = 600;
-    // let w = 200;
-    // let h = 100;
+    let width = 500;
+    let height = 250;
+    let samples = 100;
     let max_value = 255;
-
-    let lower_left_corner = Vec3::new(-2.0, -1.0, -1.0);
-    let horizontal = Vec3::new(4.0, 0.0, 0.0);
-    let vertical = Vec3::new(0.0, 2.0, 0.0);
-    let origin = Vec3::new(0.0, 0.0, 0.0);
+    // let width = 200;
+    // let height = 100;
 
     let mut list = HittableList::new();
     list.add(Box::new(Sphere::new(Vec3::new(0.0, -100.5, -1.0), 100.0)));
     list.add(Box::new(Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.5)));
 
-    println!("P3\n{} {}\n{}", w, h, max_value);
+    let cam = Camera::camera();
+    let mut rng = rand::rng();
 
-    for j in (0..h).rev() {
-        for i in 0..w {
-            let u = i as f32 / w as f32;
-            let v = j as f32 / h as f32;
+    println!("P3\n{} {}\n{}", width, height, max_value);
 
-            let direction = lower_left_corner + horizontal * u + vertical * v;
-            let r = Ray::ray(origin, direction);
-            let color = color(&r, &list);
+    for j in (0..height).rev() {
+        for i in 0..width {
+            let mut col = Vec3::default();
 
-            let ir = (255.99 * color.r()) as i32;
-            let ig = (255.99 * color.g()) as i32;
-            let ib = (255.99 * color.b()) as i32;
+            for _ in 0..samples {
+                let u = (i as f32 + rng.random::<f32>()) / width as f32;
+                let v = (j as f32 + rng.random::<f32>()) / height as f32;
+
+                let r = &cam.get_ray(u, v);
+
+                col = col + color(r, &list);
+            }
+            col = col / samples as f32;
+
+            let ir = (255.99 * col.r()) as i32;
+            let ig = (255.99 * col.g()) as i32;
+            let ib = (255.99 * col.b()) as i32;
             println!("{} {} {}", ir, ig, ib)
         }
     }
