@@ -12,25 +12,41 @@ use rand::prelude::*;
 use ray::Ray;
 use sphere::Sphere;
 use vec3::Vec3;
-fn color(r: &Ray, list: &HittableList) -> Vec3 {
+fn color(r: &Ray, list: &HittableList, depth: u32) -> Vec3 {
     let mut rec = HitRecord::default();
 
     if list.hit(r, 0.0, std::f32::MAX, &mut rec) {
-        0.5 * Vec3::new(
-            rec.normal.x() + 1.0,
-            rec.normal.y() + 1.0,
-            rec.normal.z() + 1.0,
-        )
+        let target = rec.p() + rec.normal() + random_in_unit_sphere();
+        return 0.5 * color(&Ray::ray(rec.p(), target - rec.p()), &list, depth + 1);
     } else {
         let unit_dir = r.direction().unit_vector();
         let t = 0.5 * (unit_dir.y() + 1.0);
+
         Vec3::new(1.0, 1.0, 1.0) * (1.0 - t) + Vec3::new(0.5, 0.7, 1.0) * t
     }
 }
 
+fn random_in_unit_sphere() -> Vec3 {
+    let mut p = Vec3::default();
+    let mut rng = rand::rng();
+
+    loop {
+        p =
+            2.0 * Vec3::new(
+                rng.random::<f32>(),
+                rng.random::<f32>(),
+                rng.random::<f32>(),
+            ) - Vec3::new(1.0, 1.0, 1.0);
+
+        if p.squared_length() < 1.0 {
+            return p;
+        }
+    }
+}
+
 fn main() {
-    let width = 500;
-    let height = 250;
+    let width = 1000;
+    let height = 500;
     let samples = 100;
     let max_value = 255;
     // let width = 200;
@@ -55,7 +71,7 @@ fn main() {
 
                 let r = &cam.get_ray(u, v);
 
-                col = col + color(r, &list);
+                col = col + color(r, &list, 0);
             }
             col = col / samples as f32;
 
