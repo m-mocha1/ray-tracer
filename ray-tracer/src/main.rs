@@ -54,7 +54,7 @@ fn random_in_unit_sphere() -> Vec3 {
 
 fn main() {
     let arr = ui();
-    println!("arr {:?}", arr);
+    println!("img {:?}", arr);
     let width = arr[0];
     let height = arr[1];
     let samples = 100;
