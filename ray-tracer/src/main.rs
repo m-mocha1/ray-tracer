@@ -45,12 +45,12 @@ fn random_in_unit_sphere() -> Vec3 {
 }
 
 fn main() {
-    let width = 1000;
-    let height = 500;
+    // let width = 500;
+    // let height = 250;
     let samples = 100;
     let max_value = 255;
-    // let width = 200;
-    // let height = 100;
+    let width = 200;
+    let height = 100;
 
     let mut list = HittableList::new();
     list.add(Box::new(Sphere::new(Vec3::new(0.0, -100.5, -1.0), 100.0)));
