@@ -11,11 +11,19 @@ use hittable_list::HittableList;
 use rand::prelude::*;
 use ray::Ray;
 use sphere::Sphere;
+use std::fs::File;
+use std::io::BufWriter;
+use std::io::{self, Write};
 use vec3::Vec3;
-fn color(r: &Ray, list: &HittableList, depth: u32) -> Vec3 {
-    let mut rec = HitRecord::default();
 
+fn color(r: &Ray, list: &HittableList, depth: u32) -> Vec3 {
+    let max_depth = 20;
+    let mut rec = HitRecord::default();
+    //no depth limit for 500 250 32.5 sec
     if list.hit(r, 0.0, std::f32::MAX, &mut rec) {
+        if depth >= max_depth {
+            return Vec3::new(0.0, 0.0, 0.0);
+        }
         let target = rec.p() + rec.normal() + random_in_unit_sphere();
         return 0.5 * color(&Ray::ray(rec.p(), target - rec.p()), &list, depth + 1);
     } else {
@@ -45,21 +53,27 @@ fn random_in_unit_sphere() -> Vec3 {
 }
 
 fn main() {
-    // let width = 500;
-    // let height = 250;
+    let arr = ui();
+    println!("arr {:?}", arr);
+    let width = arr[0];
+    let height = arr[1];
     let samples = 100;
     let max_value = 255;
-    let width = 200;
-    let height = 100;
+    // let width = 200;
+    // let height = 100;
 
     let mut list = HittableList::new();
     list.add(Box::new(Sphere::new(Vec3::new(0.0, -100.5, -1.0), 100.0)));
-    list.add(Box::new(Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.5)));
+    list.add(Box::new(Sphere::new(Vec3::new(-0.2, 0.0, -1.0), 0.4)));
+    list.add(Box::new(Sphere::new(Vec3::new(0.7, 0.0, -1.0), 0.4)));
 
     let cam = Camera::camera();
     let mut rng = rand::rng();
 
-    println!("P3\n{} {}\n{}", width, height, max_value);
+    let file = File::create("img.ppm").expect("Could not create file");
+    let mut writer = BufWriter::new(file);
+    writeln!(writer, "P3\n{} {}\n{}", width, height, max_value).unwrap();
+    // println!("P3\n{} {}\n{}", width, height, max_value);
 
     for j in (0..height).rev() {
         for i in 0..width {
@@ -78,7 +92,24 @@ fn main() {
             let ir = (255.99 * col.r()) as i32;
             let ig = (255.99 * col.g()) as i32;
             let ib = (255.99 * col.b()) as i32;
-            println!("{} {} {}", ir, ig, ib)
+            writeln!(writer, "{} {} {}", ir, ig, ib).unwrap();
+            // println!("{} {} {}", ir, ig, ib)
         }
     }
+}
+fn ui() -> Vec<i32> {
+    print!("Enter Width, hight for example 200x100 : ");
+    io::stdout().flush().unwrap();
+
+    let mut input = String::new();
+    io::stdin()
+        .read_line(&mut input)
+        .expect("Failed to read input");
+
+    let input = input.trim();
+
+    input
+        .split('x')
+        .map(|s| s.trim().parse().expect(""))
+        .collect()
 }
