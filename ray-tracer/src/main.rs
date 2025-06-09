@@ -19,7 +19,7 @@ use vec3::Vec3;
 fn color(r: &Ray, list: &HittableList, depth: u32) -> Vec3 {
     let max_depth = 20;
     let mut rec = HitRecord::default();
-    //no depth limit for 500 250 32.5 sec
+
     if list.hit(r, 0.0, std::f32::MAX, &mut rec) {
         if depth >= max_depth {
             return Vec3::new(0.0, 0.0, 0.0);
