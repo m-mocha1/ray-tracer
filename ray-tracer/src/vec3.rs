@@ -1,3 +1,4 @@
+use std::ops::{Index, IndexMut};
 use std::{clone, ops};
 
 #[derive(Debug, PartialEq, Clone, Copy, Default)]
@@ -107,6 +108,19 @@ impl ops::Div<f32> for Vec3 {
         Vec3 {
             e: [self.e[0] * k, self.e[1] * k, self.e[2] * k],
         }
+    }
+}
+impl std::ops::Index<usize> for Vec3 {
+    type Output = f32;
+
+    fn index(&self, i: usize) -> &Self::Output {
+        &self.e[i]
+    }
+}
+
+impl std::ops::IndexMut<usize> for Vec3 {
+    fn index_mut(&mut self, i: usize) -> &mut Self::Output {
+        &mut self.e[i]
     }
 }
 
